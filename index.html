@@ -196,6 +196,17 @@ textarea{resize:none; font-size:14px;}
 .seg-b.sel{background:var(--accent); color:#0A0B0F; border-color:var(--accent);}
 .m-row{display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); font-size:14px;}
 .m-row:last-child{border-bottom:none;}
+
+.pills{display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; margin-bottom:14px;}
+.pill{flex-shrink:0; padding:9px 16px; border-radius:999px; background:var(--surface); border:1px solid var(--border); font-weight:700; font-size:13px;}
+.pill.sel{background:var(--accent); color:#0A0B0F; border-color:var(--accent);}
+.chips{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;}
+.chip{font-size:11px; font-weight:700; padding:4px 10px; border-radius:999px; background:var(--surface-hover); color:var(--text-secondary);}
+.q-emoji{font-size:32px; width:44px; text-align:center; flex-shrink:0;}
+.pop{position:fixed; left:50%; top:40%; font-size:44px; font-weight:800; color:var(--accent); animation:popUp 1s ease forwards; z-index:60; pointer-events:none;}
+@keyframes popUp{0%{transform:translate(-50%,0) scale(.5); opacity:0;}30%{transform:translate(-50%,-20px) scale(1.2); opacity:1;}100%{transform:translate(-50%,-80px) scale(1); opacity:0;}}
+.cf{position:fixed; top:-10px; width:8px; height:8px; border-radius:50%; animation:cfall 1.6s linear forwards; z-index:60; pointer-events:none;}
+@keyframes cfall{to{transform:translateY(105vh) rotate(360deg); opacity:.8;}}
 </style>
 </head>
 <body>
@@ -215,6 +226,8 @@ textarea{resize:none; font-size:14px;}
 <symbol id="icon-full" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><path d="M12 8v6M6 12h12M8 21l4-7 4 7"/></symbol>
 <symbol id="icon-updown" viewBox="0 0 24 24"><path d="M8 4l4-3 4 3M8 20l4 3 4-3M12 1v22"/></symbol>
 <symbol id="icon-ppl" viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.5"/><circle cx="12" cy="12" r="2.5"/><circle cx="18" cy="12" r="2.5"/></symbol>
+<symbol id="icon-strength" viewBox="0 0 24 24"><path d="M3 15h18M5 12v6M8 11v8M16 11v8M19 12v6M12 3v7M9 6l3-3 3 3"/></symbol>
+<symbol id="icon-hypertrophy" viewBox="0 0 24 24"><path d="M5 19c0-6 3-10 7-10 3 0 4 2 6 2-1 5-4 8-9 8-3 0-4-1-4-1zM12 9c0-3 2-5 5-5"/></symbol>
 <symbol id="icon-crown" viewBox="0 0 24 24"><path d="M3 18h18l-2-9-5 4-2-6-2 6-5-4z"/></symbol>
 <symbol id="icon-repeat" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5l2-2M20 12a8 8 0 0 1-14 5l-2 2M2 5v5h5M22 19v-5h-5"/></symbol>
 <symbol id="ex-bench-press" viewBox="0 0 24 24"><path d="M3 16h18M6 16V9h2v7M16 16V9h2v7M4 9h4M16 9h4"/></symbol>
@@ -257,6 +270,7 @@ textarea{resize:none; font-size:14px;}
   </div>
   <div id="progDetail" class="pd-screen"></div>
   <div id="profileScreen" class="pd-screen"></div>
+  <div id="questScreen" class="pd-screen"></div>
   <div id="premiumScreen" class="premium-screen"></div>
   <div id="workoutScreen" class="workout-screen"></div>
   <div id="restBar" class="rest-bar"></div>
@@ -336,6 +350,26 @@ const PROGRAMS = {
     ]}
 };
 
+let progFilter='all';
+const GOAL_TXT={'Сила':'Цель программы — рост силы в базовых движениях: приседаниях, жиме и тяге. Работай в малом диапазоне повторений и не пропускай отдых между подходами.','Масса':'Цель программы — набор мышечной массы. Упор на объём и работу в диапазоне 6-12 повторений, достаточный белок и сон.'};
+Object.assign(PROGRAMS.fullbody,{goal:'Масса',author:'GymFlow'}); Object.assign(PROGRAMS.updown,{goal:'Масса',author:'GymFlow'}); Object.assign(PROGRAMS.ppl,{goal:'Масса',author:'GymFlow'});
+(function(){
+  const add=(id,name,author,level,goal,freq,dur,icon,blurb,days)=>{ PROGRAMS[id]={name,icon,level,goal,author,freq,duration:dur,desc:[blurb,GOAL_TXT[goal],'Подбирай вес так, чтобы в запасе оставалось 1-2 повторения, и добавляй нагрузку, когда все подходы выполнены чисто.'],days:days.map(([label,ex])=>({label,ex:ex.split('|')}))}; };
+  const A='Приседания|Жим штанги лёжа|Становая';
+  add('stronglifts_5x5','StrongLifts 5×5','Мед Байдак','Новичок','Сила','3 дня в неделю','45-60 мин','strength','Классика для новичков: 5 подходов по 5 повторений (становая — 1×5) и два чередующихся дня.',[['День A',A],['День B','Приседания|Жим стоя|Становая']]);
+  add('starting_strength','Starting Strength','Марк Риппето','Новичок','Сила','3 дня в неделю','45-60 мин','strength','Линейная прогрессия: 3×5 в базовых движениях, становая 1×5, вес растёт от тренировки к тренировке.',[['День A',A],['День B','Приседания|Жим стоя|Тяга штанги в наклоне']]);
+  add('wendler_531','5/3/1 Джима Вендлера','Джим Вендлер','Средний','Сила','4 дня в неделю','50-70 мин','strength','Четыре дня — по одному основному движению — с волнообразной нагрузкой 5/3/1 и подсобкой.',[['Жим','Жим штанги лёжа|Жим гантелей на наклонной|Разводка|Французский жим'],['Становая','Становая|Румынская тяга|Подтягивания|Тяга верхнего блока'],['Жим стоя','Жим стоя|Махи в стороны|Тяга к подбородку|Бицепс'],['Приседания','Приседания|Жим ногами|Выпады|Скручивания']]);
+  add('phul','PHUL (Power Hypertrophy Upper Lower)','Brandon Campbell','Средний','Масса','4 дня в неделю','60-75 мин','hypertrophy','Два силовых и два гипертрофийных дня: верх и низ тела чередуются.',[['Силовой Верх','Жим штанги лёжа|Тяга штанги в наклоне|Жим стоя|Подтягивания|Бицепс|Французский жим'],['Силовой Низ','Приседания|Становая|Жим ногами|Румынская тяга|Скручивания'],['Гипертрофия Верх','Жим гантелей на наклонной|Разводка|Тяга верхнего блока|Тяга штанги в наклоне|Махи в стороны|Молотки|Французский жим'],['Гипертрофия Низ','Приседания|Жим ногами|Выпады|Румынская тяга|Подъём ног']]);
+  add('phat','PHAT','Layne Norton','Продвинутый','Масса','5 дней в неделю','60-90 мин','hypertrophy','Сочетание силовой и объёмной работы: два силовых дня и три гипертрофийных.',[['Верх (сила)','Жим штанги лёжа|Тяга штанги в наклоне|Подтягивания|Жим стоя|Бицепс|Французский жим'],['Низ (сила)','Приседания|Жим ногами|Румынская тяга|Выпады|Скручивания'],['Спина и плечи','Подтягивания|Тяга верхнего блока|Тяга штанги в наклоне|Махи в стороны|Тяга к подбородку|Разводка'],['Низ (гипертрофия)','Приседания|Жим ногами|Румынская тяга|Выпады|Подъём ног'],['Грудь и руки','Жим штанги лёжа|Жим гантелей на наклонной|Разводка|Бицепс|Молотки|Французский жим']]);
+  add('candito_6week','Candito 6-Week Strength','Jonnie Candito','Продвинутый','Сила','4 дня в неделю','60-75 мин','strength','Шестинедельный цикл: тяжёлые и средние дни для верха и низа.',[['Тяжёлый низ','Приседания|Становая|Жим ногами'],['Тяжёлый верх','Жим штанги лёжа|Жим стоя|Тяга штанги в наклоне'],['Средний низ','Приседания|Румынская тяга|Выпады'],['Средний верх','Жим гантелей на наклонной|Подтягивания|Тяга верхнего блока']]);
+  const ar=[['Грудь и спина','Жим штанги лёжа|Жим гантелей на наклонной|Разводка|Подтягивания|Тяга штанги в наклоне|Тяга верхнего блока'],['Плечи и руки','Жим стоя|Махи в стороны|Тяга к подбородку|Бицепс|Молотки|Французский жим|Отжимания на брусьях'],['Ноги и пресс','Приседания|Жим ногами|Выпады|Румынская тяга|Скручивания|Подъём ног']];
+  add('arnold_split','Сплит Арнольда','Arnold Schwarzenegger','Продвинутый','Масса','6 дней в неделю','60-75 мин','hypertrophy','Три тренировочных дня, которые повторяются дважды за неделю. Высокий объём.',ar.concat(ar));
+  add('bro_split','Классический бодибилдерский сплит','Классика','Средний','Масса','5 дней в неделю','60-75 мин','hypertrophy','Одна группа мышц в день: грудь, спина, ноги, плечи, руки.',[['Грудь','Жим штанги лёжа|Жим гантелей на наклонной|Разводка|Отжимания на брусьях'],['Спина','Подтягивания|Тяга штанги в наклоне|Тяга верхнего блока|Становая'],['Ноги','Приседания|Жим ногами|Выпады|Румынская тяга'],['Плечи','Жим стоя|Махи в стороны|Тяга к подбородку|Разводка'],['Руки','Бицепс|Молотки|Французский жим|Отжимания на брусьях']]);
+  add('greyskull_lp','Greyskull LP','John Sheaffer','Новичок','Сила','3 дня в неделю','45-60 мин','strength','Линейная прогрессия с чередованием трёх дней и последним подходом «до отказа».',[['День A','Жим штанги лёжа|Приседания|Тяга штанги в наклоне'],['День B','Жим стоя|Приседания|Становая'],['День C','Жим штанги лёжа|Приседания|Подтягивания']]);
+  add('gzclp','GZCLP','Cody Lefever','Средний','Сила','4 дня в неделю','50-70 мин','strength','Многоуровневая система T1/T2/T3: тяжёлые базовые, вспомогательные и изоляция.',[['Приседания T1','Приседания|Жим штанги лёжа|Тяга штанги в наклоне|Разводка'],['Жим стоя T1','Жим стоя|Становая|Тяга верхнего блока|Бицепс'],['Жим лёжа T1','Жим штанги лёжа|Приседания|Тяга к подбородку|Французский жим'],['Становая T1','Становая|Жим стоя|Молотки|Подъём ног']]);
+})();
+function coverBg(p){ const g=p&&p.goal; return g==='Сила'?'linear-gradient(135deg, rgba(0,229,255,.28), rgba(59,130,246,.22))' : g==='Масса'?'linear-gradient(135deg, rgba(255,107,53,.3), rgba(248,113,113,.2))' : g==='Рельеф'?'linear-gradient(135deg, rgba(74,222,128,.25), rgba(0,229,255,.16))' : 'linear-gradient(135deg, rgba(0,229,255,.18), rgba(255,107,53,.1))'; }
+function progMatch(p){ return progFilter==='all' || (progFilter==='Новичок' ? p.level==='Новичок' : p.goal===progFilter); }
 const GOALS = [{id:'gain',t:'Набор массы',s:'Больше объёма и силы'},{id:'lose',t:'Похудение',s:'Жиросжигание, рельеф'},{id:'keep',t:'Поддержание формы',s:'Тонус и здоровье'}];
 const LEVELS = [{id:'beginner',t:'Новичок',s:'0-6 месяцев тренировок'},{id:'medium',t:'Средний',s:'6 мес - 2 года'},{id:'advanced',t:'Продвинутый',s:'2+ года опыта'}];
 const PROG_OPTS = [{id:'fullbody',t:'Фулбоди 3 дня',s:'Всё тело за тренировку'},{id:'updown',t:'Верх-Низ 4 дня',s:'Разделение по группам'},{id:'ppl',t:'Жим / Тяга / Ноги',s:'Максимальный объём'}];
@@ -344,8 +378,8 @@ const ACHIEVEMENTS = [
   {id:'first_workout', name:'Первая тренировка', emoji:'🎯', desc:'Заверши свою первую тренировку', check:s=>s.workouts.length>=1},
   {id:'ten_workouts', name:'10 тренировок', emoji:'📅', desc:'Заверши 10 тренировок', check:s=>s.workouts.length>=10},
   {id:'fifty_workouts', name:'50 тренировок', emoji:'🏆', desc:'Заверши 50 тренировок', check:s=>s.workouts.length>=50},
-  {id:'week_streak', name:'Неделя без пропусков', emoji:'🔥', desc:'7 дней подряд с тренировкой', check:()=>streak()>=7},
-  {id:'month_streak', name:'Месяц без пропусков', emoji:'⚡', desc:'30 дней подряд с тренировкой', check:()=>streak()>=30},
+  {id:'week_streak', name:'Неделя без пропусков', emoji:'🔥', desc:'7 дней подряд с тренировкой', check:()=>rawStreak()>=7},
+  {id:'month_streak', name:'Месяц без пропусков', emoji:'⚡', desc:'30 дней подряд с тренировкой', check:()=>rawStreak()>=30},
   {id:'bench_100', name:'Жим 100 кг', emoji:'💪', desc:'Пожми 100 кг в жиме лёжа', check:()=>maxWeightFor('Жим штанги лёжа')>=100},
   {id:'squat_150', name:'Приседания 150 кг', emoji:'🦵', desc:'Присядь со 150 кг', check:()=>maxWeightFor('Приседания')>=150},
   {id:'deadlift_200', name:'Становая 200 кг', emoji:'🏋️', desc:'Потяни 200 кг в становой', check:()=>maxWeightFor('Становая')>=200},
@@ -357,7 +391,7 @@ const ACHIEVEMENTS = [
 let state = loadState();
 function loadState(){
   try{ const s = JSON.parse(localStorage.getItem('gymflow_state')); if(s){ migrate(s); return s; } }catch(e){}
-  return { user:{goal:null,level:null,program:null,name:firstName(),customPrograms:[],restTime:90,isPremium:false,profile:emptyProfile()}, theme:"dark", workouts:[], currentDayIndex:0, points:0, onboardingDone:false, achievements:[] };
+  return { user:{goal:null,level:null,program:null,name:firstName(),customPrograms:[],restTime:90,isPremium:false,profile:emptyProfile(),questPoints:0,streakFreezes:1,frozenDays:[],freezeLastGrant:null,premiumFreezeGrant:null}, quests:{date:null,items:[],completedCount:0}, theme:"dark", workouts:[], currentDayIndex:0, points:0, onboardingDone:false, achievements:[] };
 }
 function migrate(s){
   if(!s.user.customPrograms) s.user.customPrograms = [];
@@ -365,6 +399,7 @@ function migrate(s){
   if(s.user.isPremium===undefined) s.user.isPremium = false;
   if(!s.achievements) s.achievements = [];
   s.user.profile = Object.assign(emptyProfile(), s.user.profile||{}); if(!Array.isArray(s.user.profile.weightHistory)) s.user.profile.weightHistory=[]; if(!s.theme) s.theme='dark';
+  s.user.questPoints=s.user.questPoints||0; s.user.streakFreezes=s.user.streakFreezes??1; s.user.frozenDays=s.user.frozenDays||[]; s.user.freezeLastGrant=s.user.freezeLastGrant||null; s.user.premiumFreezeGrant=s.user.premiumFreezeGrant||null; s.quests=s.quests||{date:null,items:[],completedCount:0};
   s.workouts = (s.workouts||[]).map(w=>{
     if(w.exercises) return w;
     const byEx = {};
@@ -427,7 +462,7 @@ function renderOnboarding(){
 function currentProgram(){ return allPrograms()[state.user.program] || PROGRAMS.fullbody; }
 function todayDay(){ const prog=currentProgram(); return prog.days[state.currentDayIndex % prog.days.length]; }
 function weekCompleted(){ const wk=7*24*3600*1000, now=Date.now(); return state.workouts.filter(w=>now-new Date(w.date).getTime()<wk).length; }
-function streak(){
+function rawStreak(){
   if(!state.workouts.length) return 0;
   let s=0; const day=24*3600*1000; let cursor=new Date().setHours(0,0,0,0);
   const dates=new Set(state.workouts.map(w=>new Date(w.date).setHours(0,0,0,0)));
@@ -474,7 +509,7 @@ function checkAchievements(){
   ACHIEVEMENTS.forEach(a=>{
     if(state.achievements.find(x=>x.id===a.id)) return;
     if(a.check(state)){
-      state.achievements.push({id:a.id, unlockedAt:new Date().toISOString()});
+      state.achievements.push({id:a.id, unlockedAt:new Date().toISOString()}); trackQuestEvent('new_achievement',1);
       notify('success');
       popup(a.emoji+' Достижение разблокировано!', a.name);
     }
@@ -511,8 +546,8 @@ function renderHome(){
   el.innerHTML = `
     <div class="header">
       <div class="logo-mark">${icon('logo','')}</div>
-      <div><div class="h1">Привет, ${state.user.name}!</div><div class="sub">${new Date().toLocaleDateString('ru-RU',{weekday:'long', day:'numeric', month:'long'})}</div></div>
-      <div class="avatar tappable" id="avatarBtn">${state.user.name[0].toUpperCase()}</div>
+      <div><div class="h1">Привет, ${state.user.name} ${levelInfo().emoji}</div><div class="sub">${new Date().toLocaleDateString('ru-RU',{weekday:'long', day:'numeric', month:'long'})}</div></div>
+      <div class="tappable" data-quests style="margin-left:auto; font-size:24px; padding:4px;">🎯</div><div class="avatar tappable" id="avatarBtn" style="margin-left:0;">${state.user.name[0].toUpperCase()}</div>
     </div>
     <div class="card hero" style="animation-delay:.05s;">
       <div class="label">Сегодня</div>
@@ -523,6 +558,7 @@ function renderHome(){
         <button class="btn-secondary" id="repeatWorkout" ${canRepeat?'':'disabled'}>${icon('repeat')}Повторить прошлую</button>
       </div>
     </div>
+    ${streakCard()}
     <div class="card" style="animation-delay:.1s;">
       <div class="h2">Прогресс недели</div>
       <div class="ring-row">
@@ -664,7 +700,7 @@ function showRestTimer(onDone){
   bar.classList.add('show');
   restInterval = setInterval(()=>{
     remaining--;
-    if(remaining<=0){ notify('success'); finish(); return; }
+    if(remaining<=0){ notify('success'); trackQuestEvent('rest_timer_use',1); finish(); return; }
     const track = bar.querySelector('.rest-fill'); const num = bar.querySelector('.rest-num');
     if(track) track.style.width = (remaining/total*100)+'%'; if(num) num.textContent = remaining+'с';
   }, 1000);
@@ -678,7 +714,7 @@ function finishWorkout(){
   document.getElementById('workoutScreen').classList.remove('show');
   session = null;
   notify('success'); haptic('medium'); setTimeout(()=>haptic('medium'),150);
-  popup('Готово! 🎉', 'Тренировка завершена!');
+  afterWorkout();
   checkAchievements();
   renderHome();
 }
@@ -717,7 +753,7 @@ async function getAIInsights(){
     const res = await fetch(AI_ENDPOINT, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
     if(!res.ok) throw new Error('bad response');
     const data = await res.json();
-    const tips = data.tips || [];
+    const tips = data.tips || []; trackQuestEvent('ai_use',1);
     box.innerHTML = tips.length ? tips.map(t=>`<div class="ai-tip">${icon('sparkle')}<div>${t}</div></div>`).join('') : `<div class="sub">Недостаточно данных для рекомендаций.</div>`;
   }catch(e){
     box.innerHTML = `<div class="sub" style="color:var(--danger);">Не удалось получить рекомендации. Проверь соединение.</div>`;
@@ -738,6 +774,7 @@ function renderStats(){
       <div class="card stat-card" style="animation-delay:.08s; padding:14px;"><div class="stat-num">${totalVolume()}</div><div class="sub">Объём, кг</div></div>
       <div class="card stat-card" style="animation-delay:.11s; padding:14px;"><div class="stat-num">${streak()}</div><div class="sub">Серия 🔥</div></div>
     </div>
+    ${streakCard()}
     <div class="card" style="animation-delay:.15s;"><div class="h2">Активность</div>${renderHeatmap()}</div>
     <div class="card" style="animation-delay:.18s;">
       <div class="h2">AI-инсайты</div>
@@ -761,6 +798,7 @@ function renderStats(){
       <div class="h2">Достижения</div>
       <div class="ach-grid">${ACHIEVEMENTS.map(a=>{ const unlocked=state.achievements.find(x=>x.id===a.id); return `<div class="ach-badge tappable ${unlocked?'unlocked':''}" data-ach="${a.id}">${a.emoji}</div>`; }).join('')}</div>
     </div>
+    <div class="card" style="animation-delay:.28s;"><div class="h2">Поделиться прогрессом</div><div class="btn-row"><button class="btn-secondary" data-share="streak">🔥 Серия</button><button class="btn-secondary" data-share="profile">⚖️ Профиль</button></div></div>
     <div class="card" style="animation-delay:.29s;"><div class="h2">Экспорт данных</div><div class="sub" style="margin:0 0 12px;">${isPremium()?"Все тренировки в CSV":"Бесплатно: 10 последних тренировок"}</div><button class="btn-secondary" id="csvBtn">Экспорт CSV</button></div>
     <div class="card tappable" id="premiumCard" style="animation-delay:.3s; background:linear-gradient(135deg, rgba(0,229,255,.1), rgba(255,107,53,.06));">
       <div style="display:flex; align-items:center; gap:10px;">${icon('crown')}<div class="h2" style="margin:0;">GymFlow Premium</div></div>
@@ -772,7 +810,7 @@ function renderStats(){
   el.querySelectorAll('[data-ach]').forEach(b=>{
     b.addEventListener('click', ()=>{
       haptic('light'); const a = ACHIEVEMENTS.find(x=>x.id===b.dataset.ach); const unlocked = state.achievements.find(x=>x.id===a.id);
-      alertMsg(unlocked ? `${a.emoji} ${a.name}\n${a.desc}\nПолучено: ${new Date(unlocked.unlockedAt).toLocaleDateString('ru-RU')}` : `${a.emoji} ${a.name}\n${a.desc}\nЕщё не разблокировано`);
+      achInfo(a, unlocked, unlocked ? `${a.emoji} ${a.name}\n${a.desc}\nПолучено: ${new Date(unlocked.unlockedAt).toLocaleDateString('ru-RU')}` : `${a.emoji} ${a.name}\n${a.desc}\nЕщё не разблокировано`);
     });
   });
   document.getElementById('premiumCard').addEventListener('click', ()=>{ haptic('light'); openPremium(); });
@@ -858,10 +896,11 @@ function renderPrograms(){
   const progs = allPrograms();
   el.innerHTML = `
     <div class="header"><div class="h1">Программы</div></div>
-    ${Object.entries(progs).map(([id,p],i)=>{
+    <div class="pills">${[["all","Все"],["Сила","Сила"],["Масса","Масса"],["Новичок","Новичку"]].map(([k,t])=>`<button class="pill ${progFilter===k?"sel":""}" data-pf="${k}">${t}</button>`).join("")}</div>
+    ${Object.entries(progs).filter(([id,p])=>progMatch(p)).map(([id,p],i)=>{
       const active = state.user.program === id; const isCustom = !!p.isCustom;
       return `<div class="card tappable" data-prog="${id}" style="animation-delay:${.05+i*.05}s; ${active?'border-color:var(--accent); background:rgba(0,229,255,.06);':''}">
-        <div class="prog-cover" style="background:linear-gradient(135deg, rgba(0,229,255,.18), rgba(255,107,53,.1));">${icon(p.icon||'full','')}</div>
+        <div class="prog-cover" style="background:${coverBg(p)};">${icon(p.icon||'full','')}</div>
         <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
           <div class="h2 ellipsis" style="margin:0; flex:1;">${p.name}</div>
           <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
@@ -869,11 +908,12 @@ function renderPrograms(){
             ${isCustom?`<span class="tappable" data-edit="${id}" style="color:var(--text-secondary);">${icon('pencil')}</span><span class="tappable" data-del="${id}" style="color:var(--danger);">${icon('trash')}</span>`:''}
           </div>
         </div>
-        <div class="sub ellipsis">${p.days.map(d=>d.label).join(' · ')}</div>
+        ${p.author?`<div class="sub" style="font-size:12px;">Автор: ${p.author}</div>`:`<div class="sub ellipsis">${p.days.map(d=>d.label).join(" · ")}</div>`}${p.level?`<div class="chips"><span class="chip">${p.level}</span>${p.goal?`<span class="chip">${p.goal}</span>`:""}<span class="chip">${(p.freq||"").replace(" в неделю","")}</span></div>`:""}
       </div>`;
     }).join('')}
     <button class="btn-secondary" id="createProgBtn" style="width:100%; margin-top:8px;">+ Создать свою программу</button>
   `;
+  el.querySelectorAll('[data-pf]').forEach(b=>b.addEventListener('click',()=>{ haptic('light'); progFilter=b.dataset.pf; renderPrograms(); }));
   el.querySelectorAll('[data-prog]').forEach(c=>{
     c.addEventListener('click', (ev)=>{ if(ev.target.closest('[data-edit]')||ev.target.closest('[data-del]')) return; haptic('light'); openProgramDetail(c.dataset.prog); });
   });
@@ -889,17 +929,18 @@ function renderPrograms(){
 
 /* ---------- PROGRAM DETAIL ---------- */
 function openProgramDetail(id){
+  trackQuestEvent('program_view',1);
   const p = allPrograms()[id];
   const scr = document.getElementById('progDetail');
   const active = state.user.program === id;
   scr.innerHTML = `
     <div class="pd-top">
       <div class="pd-back tappable" id="pdBack">← Назад</div>
-      <div class="pd-cover" style="background:linear-gradient(135deg, rgba(0,229,255,.2), rgba(255,107,53,.12));">${icon(p.icon||'full','')}</div>
+      <div class="pd-cover" style="background:${coverBg(p)};">${icon(p.icon||'full','')}</div>
     </div>
     <div class="pd-body">
-      <div class="h1 clamp2" style="margin-bottom:4px;">${p.name}</div>
-      <div class="sub" style="margin-bottom:16px;">${p.freq||(p.days.length+' дней в неделю')} · ${p.duration||'45-60 минут'} · ${p.level||'Любой уровень'}</div>
+      <div class="h1 clamp2" style="margin-bottom:4px;">${p.name}</div>${p.author?`<div class="sub" style="font-size:12px; margin:0 0 6px;">Автор: ${p.author}</div>`:""}
+      <div class="sub" style="margin-bottom:16px;">${p.freq||(p.days.length+' дней в неделю')} · ${p.duration||'45-60 минут'} · ${p.level||'Любой уровень'}${p.goal?' · '+p.goal:''}</div>
       ${(p.desc||[p.description||'']).map(par=>`<p class="sub" style="color:var(--text); line-height:1.6; margin-bottom:10px;">${par}</p>`).join('')}
       <div class="card" style="margin-top:16px;">
         <div class="h2">Тренировки</div>
@@ -915,7 +956,7 @@ function openProgramDetail(id){
   scr.querySelectorAll('[data-day]').forEach(row=>{ row.addEventListener('click', ()=>{ haptic('light'); document.getElementById('pdEx'+row.dataset.day).classList.toggle('open'); }); });
   if(!active){
     document.getElementById('activateBtn').addEventListener('click', ()=>{
-      haptic('medium'); state.user.program=id; state.currentDayIndex=0; saveState();
+      haptic('medium'); state.user.program=id; state.currentDayIndex=0; saveState(); trackQuestEvent('program_activate',1);
       scr.classList.remove('show'); renderPrograms(); renderHome();
     });
   }
@@ -988,7 +1029,7 @@ function openExercisePicker(dayIndex){
   `;
   overlay.classList.add('show'); sheet.classList.add('show');
   document.getElementById('pSearch').addEventListener('input', e=>{ document.getElementById('pList').innerHTML = list(e.target.value); bindPick(); });
-  function bindPick(){ document.querySelectorAll('[data-pick]').forEach(el=>{ el.addEventListener('click', ()=>{ haptic('light'); builder.days[dayIndex].ex.push(el.dataset.pick); renderBuilder(); }); }); }
+  function bindPick(){ document.querySelectorAll('[data-pick]').forEach(el=>{ el.addEventListener('click', ()=>{ haptic('light'); builder.days[dayIndex].ex.push(el.dataset.pick); trackQuestEvent('custom_program_add',1); renderBuilder(); }); }); }
   bindPick();
   document.getElementById('pBack').addEventListener('click', ()=>{ haptic('light'); renderBuilder(); });
 }
@@ -1119,7 +1160,7 @@ function saveProfile(d){
 }
 function saveWeight(w){
   const p=state.user.profile, t=todayStr(), l=p.weightHistory[p.weightHistory.length-1];
-  p.weight=w; if(l && l.date===t) l.weight=w; else p.weightHistory.push({date:t, weight:w});
+  p.weight=w; if(l && l.date===t) l.weight=w; else { p.weightHistory.push({date:t, weight:w}); trackQuestEvent('weight_update',1); }
   saveState();
 }
 function openSheet(html){ $('sheet').innerHTML=html; $('overlay').classList.add('show'); $('sheet').classList.add('show'); }
@@ -1155,7 +1196,7 @@ function themeCard(){
   return `<div class="card"><div class="h2">Оформление <span class="pbadge">⭐ Premium</span></div>
     <div class="seg"><button class="seg-b ${t==='dark'?'sel':''}" data-th="dark">Тёмная</button><button class="seg-b ${t==='light'?'sel':''}" data-th="light">${isPremium()?'':'🔒 '}Светлая</button></div></div>`;
 }
-function openProfile(){ renderProfile(); $('profileScreen').classList.add('show'); }
+function openProfile(){ trackQuestEvent('profile_view',1); renderProfile(); $('profileScreen').classList.add('show'); }
 function renderProfile(){
   const scr=$('profileScreen'), p=state.user.profile, m=metrics(); let body;
   if(!m){
@@ -1172,9 +1213,9 @@ function renderProfile(){
       : `<div style="font-size:15px; line-height:1.5;">При текущем темпе достигнешь <b>${tw} кг</b> к <b>${fc.date.toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'})}</b></div><div class="sub" style="margin:4px 0 10px;">Это через ${fc.days} дн.</div>`;
     body=`
     <div class="card">
-      <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;"><div class="avatar" style="margin:0;">${state.user.name[0].toUpperCase()}</div><div><div class="h2" style="margin:0;">${state.user.name}</div><div class="sub" style="margin:0;">${p.gender==='male'?'Мужской':'Женский'}, ${years(p.age)}</div></div></div>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;"><div class="avatar" style="margin:0;">${state.user.name[0].toUpperCase()}</div><div><div class="h2" style="margin:0;">${state.user.name}</div><div class="sub" style="margin:0;">${p.gender==='male'?'Мужской':'Женский'}, ${years(p.age)} · ${levelInfo().name} ${levelInfo().emoji}</div></div></div>
       <div style="display:flex; justify-content:space-between; align-items:flex-end;"><div><div class="label">Сейчас</div><div class="stat-num" style="font-size:34px;">${p.weight}<span class="sub"> кг</span></div></div><div style="text-align:right;"><div class="label">Цель</div><div class="stat-num" style="font-size:34px; color:var(--accent);">${tw}<span class="sub"> кг</span></div></div></div>
-      <div class="rest-track" style="margin:14px 0 0;"><div class="rest-fill" style="width:${Math.round(pr*100)}%"></div></div>
+      <div class="rest-track" style="margin:14px 0 0;"><div class="rest-fill" style="width:${Math.round(pr*100)}%"></div></div><button class="btn-ghost" data-share="profile" style="margin-top:10px;">📤 Поделиться</button>
     </div>
     <div class="card"><div class="h2">Мои показатели</div>
       <div class="ring-row" style="margin-bottom:10px;"><svg width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="${R}" stroke="var(--border)" stroke-width="6" fill="none"/><circle cx="40" cy="40" r="${R}" stroke="${bc.c}" stroke-width="6" fill="none" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${off}" transform="rotate(-90 40 40)"/><text x="40" y="45" text-anchor="middle" fill="var(--text)" font-size="16" font-weight="800">${m.bmi}</text></svg>
@@ -1188,7 +1229,7 @@ function renderProfile(){
     <div class="card"><div class="h2">Прогноз цели <span class="pbadge">⭐ Premium</span></div>${lockWrap(fcHTML+weightSpark(hist))}</div>
     <div class="btn-row" style="margin-bottom:12px;"><button class="btn-primary" data-pweight>Обновить вес</button><button class="btn-secondary" data-pedit>Редактировать</button></div>`;
   }
-  scr.innerHTML = `<div class="pd-top"><div class="pd-back tappable" id="prBack">← Назад</div><div class="h1" style="margin-bottom:16px;">Профиль</div></div><div class="pd-body">${body}${themeCard()}</div>`;
+  scr.innerHTML = `<div class="pd-top"><div class="pd-back tappable" id="prBack">← Назад</div><div class="h1" style="margin-bottom:16px;">Профиль</div></div><div class="pd-body">${body}${freezeCard()}${themeCard()}</div>`;
   const on=(sel,fn)=>scr.querySelectorAll(sel).forEach(b=>b.addEventListener('click',fn));
   on('#prBack', ()=>{ haptic('light'); scr.classList.remove('show'); });
   on('[data-pedit]', ()=>{ haptic('light'); openProfileEdit(); });
@@ -1200,6 +1241,191 @@ function renderProfile(){
     applyTheme(t); renderProfile();
   }));
 }
+
+/* ---------- LEVELS ---------- */
+function levelInfo(){ const p=state.user.questPoints||0; return p>=5000?{name:'Легенда',emoji:'👑'}:p>=1000?{name:'Мастер',emoji:'💎'}:p>=500?{name:'Про',emoji:'🥇'}:p>=100?{name:'Атлет',emoji:'🥈'}:{name:'Новичок',emoji:'🥉'}; }
+function plural(n,f){ const d=n%10,h=n%100; return n+' '+(d===1&&h!==11?f[0]:(d>=2&&d<=4&&(h<12||h>14))?f[1]:f[2]); }
+function dk(t){ return new Date(t).toLocaleDateString('sv-SE'); }
+function popupBtns(title,message,buttons,cb){ try{ if(tg&&tg.showPopup){ tg.showPopup({title,message,buttons},cb); return; } }catch(e){} alertMsg(title+'\n'+message); }
+
+/* ---------- STREAK + FREEZE ---------- */
+function streak(){
+  if(!state.workouts.length) return 0;
+  const frozen=new Set(state.user.frozenDays||[]), has=new Set(state.workouts.map(w=>dk(w.date)));
+  const ok=d=>has.has(dk(d))||frozen.has(dk(d));
+  let c=new Date(); c.setHours(12,0,0,0);
+  if(!ok(c)) c=new Date(c.getTime()-86400000);
+  let s=0; for(let i=0;i<365&&ok(c);i++){ s++; c=new Date(c.getTime()-86400000); }
+  return s;
+}
+function dayActive(k){ return state.workouts.some(w=>dk(w.date)===k) || (state.user.frozenDays||[]).includes(k); }
+function canUseFreeze(){
+  const y=dk(Date.now()-86400000), yy=dk(Date.now()-2*86400000);
+  if((state.user.streakFreezes||0)<=0) return {ok:false, reason:'Нет доступных заморозок'};
+  if(state.workouts.some(w=>dk(w.date)===y)) return {ok:false, reason:'Вчера ты тренировался — серия в порядке'};
+  if((state.user.frozenDays||[]).includes(y)) return {ok:false, reason:'Вчера уже заморожен'};
+  if(!dayActive(yy)) return {ok:false, reason:'Серия уже прервалась — заморозка не поможет'};
+  return {ok:true, reason:''};
+}
+function showFreezeAlert(){ return canUseFreeze().ok; }
+function useStreakFreeze(){
+  const c=canUseFreeze(); if(!c.ok){ alertMsg(c.reason); return; }
+  state.user.frozenDays.push(dk(Date.now()-86400000)); state.user.streakFreezes--;
+  saveState(); haptic('medium'); notify('success'); trackQuestEvent('freeze_use',1);
+  popup('Серия сохранена! ❄️','Вчерашний день заморожен. Серия продолжается.'); refreshUI();
+}
+function grantFreezeIfNeeded(){
+  const u=state.user; let add=0; const wk=t=>Math.floor(new Date(t).getTime()/604800000);
+  if(u.streakFreezes===0 && streak()>=7 && (!u.freezeLastGrant||wk(u.freezeLastGrant)!==wk(todayStr()))){ u.streakFreezes++; u.freezeLastGrant=todayStr(); add+=1; }
+  if(isPremium() && (!u.premiumFreezeGrant||Date.now()-new Date(u.premiumFreezeGrant).getTime()>=30*86400000)){ u.streakFreezes+=2; u.premiumFreezeGrant=todayStr(); add+=2; }
+  if(add){ saveState(); popup('🎁 Ты получил заморозку серии!','❄️ +'+add); }
+}
+function streakCard(){
+  const s=streak(), fr=state.user.streakFreezes||0;
+  return `<div class="card" style="animation-delay:.08s;"><div class="h2">Серия 🔥</div>
+    <div style="display:flex; align-items:center; justify-content:space-between;"><div><div class="stat-num" style="font-size:48px;">${s}</div><div class="sub">дней подряд</div></div>
+    <div style="text-align:right;"><div class="pbadge" style="font-size:12px;">❄️ ${fr}</div><div class="sub" style="margin-top:4px;">заморозок</div></div></div>
+    ${showFreezeAlert()?`<div class="hint-card" style="margin-top:12px; margin-bottom:0;">⚠️ Серия под угрозой! Вчера не было тренировки.<button class="btn-primary" data-freeze style="width:100%; margin-top:10px;">Заморозить вчерашний день ❄️</button></div>`:''}
+    ${s>=7&&fr===0?'<div class="sub" style="margin-top:12px;">🎁 Раз в неделю дарим +1 заморозку, если их нет, а серия ≥ 7 дней</div>':''}</div>`;
+}
+function freezeCard(){
+  const u=state.user, pts=u.questPoints||0, L=levelInfo();
+  return `<div class="card"><div class="h2">Заморозки серии ❄️ <span class="pbadge">${u.streakFreezes||0}</span></div><div class="sub" style="margin:0 0 12px;">${L.emoji} ${L.name} · ${pts} очков</div>
+    <div class="btn-row"><button class="btn-secondary" data-buypts ${pts<50?'disabled':''}>За 50 очков</button><button class="btn-primary" data-buystar>За 5 ⭐</button></div>${pts<50?`<div class="sub" style="margin-top:8px;">Нужно 50 очков, у тебя ${pts}</div>`:''}</div>`;
+}
+async function buyWithStars(amount,title,desc,type,onPaid){
+  if(!tg||!tg.openInvoice){ alertMsg('Открой приложение в Telegram, чтобы оплатить'); return; }
+  if(tg.isVersionAtLeast && !tg.isVersionAtLeast('6.1')){ alertMsg('Обнови Telegram до последней версии'); return; }
+  try{
+    const res=await fetch(PAYMENT_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:tg.initDataUnsafe&&tg.initDataUnsafe.user?tg.initDataUnsafe.user.id:null,amount,title,description:desc,type})});
+    const data=await res.json(); if(!data.invoiceLink) throw new Error(data.error||'Не удалось создать счёт');
+    tg.openInvoice(data.invoiceLink, st=>{ if(st==='paid') onPaid(); else if(st==='cancelled') alertMsg('Оплата отменена'); else alertMsg('Оплата не завершена'); });
+  }catch(e){ console.error(e); alertMsg('Ошибка: '+e.message); }
+}
+function refreshUI(){
+  if($('profileScreen').classList.contains('show')) renderProfile();
+  if($('questScreen').classList.contains('show')) renderQuests();
+  const a=document.querySelector('.dock-btn.active'); if(a){ if(a.dataset.tab==='home') renderHome(); else if(a.dataset.tab==='stats') renderStats(); }
+}
+
+/* ---------- QUESTS ---------- */
+const QUEST_POOL=[
+  ['workout_complete','🏋️','Заверши тренировку','Проведи полную тренировку от начала до конца',20,1],
+  ['sets_15','💪','15 подходов','Сделай минимум 15 подходов за сегодня',15,15],
+  ['volume_3000','📊','Объём 3000 кг','Подними 3000 кг общего объёма за сегодня',25,3000],
+  ['weight_update','⚖️','Запиши вес','Обнови свой текущий вес в профиле',10,1],
+  ['ai_use','✨','AI-совет','Получи персональные рекомендации от AI',5,1],
+  ['squat_3','🦵','3 подхода приседаний','Сделай 3 подхода приседаний за тренировку',15,3],
+  ['bench_3','🏋️','3 подхода жима','Сделай 3 подхода жима штанги лёжа',15,3],
+  ['morning_workout','🌅','Ранняя тренировка','Потренируйся до 10 утра',20,1],
+  ['evening_workout','🌙','Вечерняя тренировка','Потренируйся после 19:00',15,1],
+  ['rest_timer_use','⏱️','Таймер отдыха','Используй таймер отдыха между подходами',10,1],
+  ['profile_view','👤','Загляни в профиль','Открой профиль и посмотри свои расчёты',5,1],
+  ['share_card','📤','Поделись успехом','Отправь карточку прогресса другу',15,1],
+  ['new_achievement','🏆','Новое достижение','Разблокируй любое достижение сегодня',30,1],
+  ['program_view','📋','Изучи программу','Открой детали новой программы',10,1],
+  ['ai_plan_use','🗓️','AI-план','Сгенерируй план тренировок на неделю',25,1,false],
+  ['program_activate','🎯','Смени программу','Активируй новую программу тренировок',10,1],
+  ['custom_program_add','➕','Добавь упражнение','Добавь упражнение в кастомную программу',15,1],
+  ['freeze_use','❄️','Заморозка серии','Используй заморозку, чтобы сохранить серию',10,1],
+  ['streak_3','🔥','3 дня подряд','Достигни серии в 3 дня',40,1],
+  ['volume_week_10k','🚀','10 000 кг за неделю','Набери 10 000 кг объёма за 7 дней',50,1]
+].map(([id,icon,title,desc,reward,target,avail])=>({id,icon,title,desc,reward,target,avail:avail!==false,check:p=>p>=target,trackEvent:id}));
+function generateDailyQuests(){
+  if(state.quests.date===todayStr() && state.quests.items.length) return;
+  const pool=QUEST_POOL.filter(q=>q.avail);
+  for(let i=pool.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]]; }
+  state.quests={date:todayStr(), items:pool.slice(0,3).map(q=>({id:q.id,icon:q.icon,title:q.title,desc:q.desc,reward:q.reward,target:q.target,progress:0,done:false,claimed:false})), completedCount:0};
+  saveState();
+}
+function trackQuestEvent(name,value=1){
+  generateDailyQuests();
+  const it=state.quests.items.find(q=>q.id===name); if(!it||it.done) return;
+  const def=QUEST_POOL.find(q=>q.id===name);
+  it.progress=Math.min(it.target,it.progress+value); it.done=def?def.check(it.progress):it.progress>=it.target;
+  saveState();
+}
+function weekVolume(){ const now=Date.now(); let v=0; state.workouts.forEach(w=>{ if(now-new Date(w.date).getTime()<7*86400000) w.exercises.forEach(e=>e.sets.forEach(s=>v+=s.weight*s.reps)); }); return Math.round(v); }
+function afterWorkout(){
+  const w=state.workouts[state.workouts.length-1]; if(!w) return;
+  const h=new Date().getHours(); let sets=0,vol=0,sq=0,bp=0;
+  w.exercises.forEach(e=>{ sets+=e.sets.length; e.sets.forEach(s=>vol+=s.weight*s.reps); if(e.name==='Приседания'&&e.sets.length>=3) sq+=e.sets.length; if(e.name==='Жим штанги лёжа'&&e.sets.length>=3) bp+=e.sets.length; });
+  trackQuestEvent('workout_complete',1); trackQuestEvent('sets_15',sets); trackQuestEvent('volume_3000',Math.round(vol));
+  if(sq) trackQuestEvent('squat_3',sq); if(bp) trackQuestEvent('bench_3',bp);
+  if(h<10) trackQuestEvent('morning_workout',1); if(h>=19) trackQuestEvent('evening_workout',1);
+  if(streak()>=3) trackQuestEvent('streak_3',1); if(weekVolume()>=10000) trackQuestEvent('volume_week_10k',1);
+  popupBtns('Готово! 🎉','Тренировка завершена!',[{id:'share',type:'default',text:'Поделиться'},{type:'ok'}],id=>{ if(id==='share') shareWorkoutCard(); });
+}
+function openQuests(){ generateDailyQuests(); renderQuests(); $('questScreen').classList.add('show'); }
+function renderQuests(){
+  const q=state.quests, done=q.items.filter(i=>i.done).length, L=levelInfo();
+  $('questScreen').innerHTML=`<div class="pd-top"><div class="pd-back tappable" id="qBack">← Назад</div><div class="h1" style="margin-bottom:16px;">Квесты дня</div></div>
+  <div class="pd-body"><div class="card"><div class="h2">${done} из ${q.items.length} выполнено</div><div class="rest-track" style="margin:0 0 10px;"><div class="rest-fill" style="width:${Math.round(done/q.items.length*100)}%"></div></div><div class="sub" style="margin:0;">Общий счёт: ${state.user.questPoints||0} очков · ${L.emoji} ${L.name}</div></div>
+  ${q.items.map((i,n)=>`<div class="card" style="animation-delay:${n*.06}s; ${i.claimed?'opacity:.6;':''}"><div style="display:flex; gap:12px; align-items:center;"><div class="q-emoji">${i.icon}</div><div style="flex:1;"><div class="ex-name">${i.title}</div><div class="ex-muscle">${i.desc}</div></div></div>
+    <div class="rest-track" style="margin:12px 0 6px;"><div class="rest-fill" style="width:${Math.round(i.progress/i.target*100)}%"></div></div>
+    <div style="display:flex; justify-content:space-between; font-size:13px;"><span class="sub" style="margin:0;">${i.progress} / ${i.target}</span><b style="color:var(--accent);">+${i.reward} очков</b></div>
+    ${i.done&&!i.claimed?`<button class="btn-primary" data-claim="${i.id}" style="width:100%; margin-top:12px;">Забрать</button>`:''}${i.claimed?'<div style="margin-top:8px;">✅</div>':''}</div>`).join('')}</div>`;
+  $('qBack').addEventListener('click',()=>{ haptic('light'); $('questScreen').classList.remove('show'); renderHome(); });
+  $('questScreen').querySelectorAll('[data-claim]').forEach(b=>b.addEventListener('click',()=>claimQuest(b.dataset.claim)));
+}
+function claimQuest(id){
+  const it=state.quests.items.find(q=>q.id===id); if(!it||!it.done||it.claimed) return;
+  it.claimed=true; state.user.questPoints=(state.user.questPoints||0)+it.reward; state.quests.completedCount++; saveState();
+  notify('success'); haptic('medium');
+  const p=document.createElement('div'); p.className='pop'; p.textContent='+'+it.reward; document.body.appendChild(p); setTimeout(()=>p.remove(),1000);
+  for(let i=0;i<28;i++){ const c=document.createElement('div'); c.className='cf'; c.style.left=Math.random()*100+'vw'; c.style.background=i%2?'#00E5FF':'#FF6B35'; c.style.animationDelay=Math.random()*.5+'s'; document.body.appendChild(c); setTimeout(()=>c.remove(),2300); }
+  renderQuests(); checkAndNotifyQuestCompletion();
+}
+function checkAndNotifyQuestCompletion(){ if(state.quests.items.length && state.quests.items.every(i=>i.claimed)) setTimeout(()=>popup('Все квесты дня выполнены! 🎉','Возвращайся завтра за новыми.'),700); }
+
+/* ---------- SHARE CARDS ---------- */
+async function waitForFonts(){
+  if(document.fonts && document.fonts.load){
+    try{ await Promise.all([document.fonts.load('800 72px Manrope'),document.fonts.load('700 48px Manrope'),document.fonts.load('500 32px Manrope')]); await document.fonts.ready; }catch(e){}
+  }
+}
+function fitFont(x,text,w,size,maxW){ while(size>36){ x.font=`${w} ${size}px Manrope, sans-serif`; if(x.measureText(text).width<=maxW) break; size-=4; } x.font=`${w} ${size}px Manrope, sans-serif`; }
+function drawCardToCanvas(cfg){
+  const c=document.createElement('canvas'); c.width=1080; c.height=1920; const x=c.getContext('2d');
+  x.fillStyle='#0A0B0F'; x.fillRect(0,0,1080,1920);
+  let g=x.createRadialGradient(1080,0,0,1080,0,800); g.addColorStop(0,'rgba(0,229,255,0.15)'); g.addColorStop(1,'rgba(0,229,255,0)'); x.fillStyle=g; x.fillRect(0,0,1080,1920);
+  g=x.createRadialGradient(0,1920,0,0,1920,600); g.addColorStop(0,'rgba(255,107,53,0.1)'); g.addColorStop(1,'rgba(255,107,53,0)'); x.fillStyle=g; x.fillRect(0,0,1080,1920);
+  x.save(); x.translate(80,90); x.scale(3.6,3.6); const lg=x.createLinearGradient(0,0,32,32); lg.addColorStop(0,'#00E5FF'); lg.addColorStop(1,'#FF6B35'); x.fillStyle=lg; x.fill(new Path2D('M20 5 10 17h6l-2 10 10-13h-6z')); x.restore();
+  x.textBaseline='alphabetic'; x.textAlign='left'; x.fillStyle='#FFFFFF'; x.font='800 48px Manrope, sans-serif'; x.fillText('GymFlow',215,165);
+  x.textAlign='center'; x.fillStyle='#FFFFFF'; fitFont(x,cfg.main,800,140,940); x.fillText(cfg.main,540,720);
+  x.fillStyle='#8B8D98'; x.font='500 42px Manrope, sans-serif'; x.fillText(cfg.caption,540,800); x.fillText('в GymFlow',540,860);
+  const mets=[['Тренировок',state.workouts.length],['Объём, кг',totalVolume()],['Серия',streak()],['Достижений',state.achievements.length]];
+  mets.forEach(([l,v],i)=>{ const cx=80+115+i*230; x.fillStyle='#FFFFFF'; fitFont(x,String(v),800,56,200); x.fillText(String(v),cx,1250); x.fillStyle='#8B8D98'; x.font='500 28px Manrope, sans-serif'; x.fillText(l,cx,1305);
+    if(i>0){ x.fillStyle='rgba(255,255,255,0.14)'; x.fillRect(80+i*230,1180,2,150); } });
+  x.fillStyle='#00E5FF'; x.font='600 36px Manrope, sans-serif'; x.fillText('Тренируйся со мной в GymFlow',540,1740);
+  x.fillStyle='#8B8D98'; x.font='500 28px Manrope, sans-serif'; x.fillText('@mygymflow_bot',540,1820);
+  return c;
+}
+async function shareCard(cfg){
+  await waitForFonts(); const c=drawCardToCanvas(cfg), url=c.toDataURL('image/png'), txt='Смотри мой прогресс в GymFlow!';
+  openSheet(`<div class="sheet-handle"></div><img src="${url}" style="width:48%; display:block; margin:0 auto 14px; border-radius:14px; border:1px solid var(--border);"><button class="btn-primary" id="shChat" style="width:100%; margin-bottom:8px;">📤 Отправить в чат</button><button class="btn-secondary" id="shStory" style="width:100%; margin-bottom:8px;">📸 В сторис</button><button class="btn-secondary" id="shSave" style="width:100%;">💾 Сохранить в галерею</button>`);
+  $('shChat').addEventListener('click',()=>{ haptic('light'); const u='https://t.me/share/url?url='+encodeURIComponent('https://t.me/mygymflow_bot/app')+'&text='+encodeURIComponent(txt); if(tg&&tg.openTelegramLink) tg.openTelegramLink(u); else window.open(u,'_blank'); trackQuestEvent('share_card',1); });
+  $('shStory').addEventListener('click',()=>{ haptic('light');
+    if(tg&&tg.shareToStory&&(!tg.isVersionAtLeast||tg.isVersionAtLeast('7.8'))){ try{ tg.shareToStory(url,{text:txt}); trackQuestEvent('share_card',1); }catch(e){ alertMsg('Не удалось открыть сторис. Сохрани картинку и добавь её вручную.'); } }
+    else alertMsg('Обнови Telegram до последней версии для этой функции'); });
+  $('shSave').addEventListener('click',()=>{ haptic('light'); c.toBlob(b=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='gymflow_share.png'; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },1000); trackQuestEvent('share_card',1); },'image/png'); });
+}
+function shareWorkoutCard(){ const w=state.workouts[state.workouts.length-1]; if(!w){ alertMsg('Пока нет тренировок'); return; } shareCard({main:plural(w.exercises.length,['упражнение','упражнения','упражнений']),caption:'сегодня'}); }
+function shareStreakCard(){ const s=streak(); shareCard({main:'🔥 '+plural(s,['день','дня','дней']),caption:'без пропусков'}); }
+function shareAchievementCard(id){ const a=ACHIEVEMENTS.find(x=>x.id===id); if(a) shareCard({main:a.emoji+' '+a.name,caption:'получено сегодня'}); }
+function shareProfileCard(){ const p=state.user.profile; if(!p.weight){ alertMsg('Сначала заполни профиль'); return; } shareCard({main:p.weight+' кг',caption:p.targetWeight?'иду к '+p.targetWeight+' кг':'мой вес'}); }
+function achInfo(a,unlocked,text){ if(!unlocked){ alertMsg(text); return; } popupBtns(a.emoji+' '+a.name,text.split('\n').slice(1).join('\n'),[{id:'share',type:'default',text:'Поделиться'},{type:'ok'}],id=>{ if(id==='share') shareAchievementCard(a.id); }); }
+
+/* ---------- DELEGATED CLICKS ---------- */
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-share],[data-freeze],[data-buypts],[data-buystar],[data-quests]'); if(!t) return;
+  haptic('light'); const d=t.dataset;
+  if('quests' in d) openQuests();
+  else if('freeze' in d) useStreakFreeze();
+  else if('share' in d){ if(d.share==='streak') shareStreakCard(); else shareProfileCard(); }
+  else if('buypts' in d){ if((state.user.questPoints||0)<50) return; state.user.questPoints-=50; state.user.streakFreezes++; saveState(); popup('Заморозка куплена! ❄️','Теперь у тебя '+plural(state.user.streakFreezes,['заморозка','заморозки','заморозок'])); refreshUI(); }
+  else if('buystar' in d) buyWithStars(5,'Заморозка серии','1 заморозка для сохранения серии','streak_freeze',()=>{ state.user.streakFreezes++; saveState(); notify('success'); popup('Заморозка куплена! ❄️','Теперь у тебя '+plural(state.user.streakFreezes,['заморозка','заморозки','заморозок'])); refreshUI(); });
+});
 
 /* ---------- NAV ---------- */
 function switchTab(tab){
@@ -1216,7 +1442,7 @@ if(tg && tg.BackButton){ tg.BackButton.onClick(()=>{ haptic('light'); switchTab(
 
 /* ---------- BOOT ---------- */
 function boot(){
-  initTheme();
+  initTheme(); if(state.onboardingDone){ generateDailyQuests(); grantFreezeIfNeeded(); }
   if(!state.onboardingDone){
     document.getElementById('onboarding').classList.remove('hidden');
     document.getElementById('main').classList.add('hidden');
